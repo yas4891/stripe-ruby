@@ -34,5 +34,19 @@ module Stripe
       transactions = receiver.transactions.all
       assert_equal(3, transactions.data.length)
     end
+
+    should "delete a bitcoin receiver with no customer through top-level API" do
+      @mock.expects(:delete).with("#{Stripe.api_base}/v1/bitcoin/receivers/btcrcv_test_receiver", nil, nil).once.returns(test_response({:deleted => true, :id => "btcrcv_test_receiver"}))
+      receiver = Stripe::BitcoinReceiver.construct_from(test_bitcoin_receiver)
+      response = receiver.delete
+      assert(receiver.deleted)
+    end
+
+    should "delete a bitcoin receiver with a customer through customer's subresource API" do
+      @mock.expects(:delete).with("#{Stripe.api_base}/v1/customers/customer_foo/sources/btcrcv_test_receiver", nil, nil).once.returns(test_response({:deleted => true, :id => "btcrcv_test_receiver"}))
+      receiver = Stripe::BitcoinReceiver.construct_from(test_bitcoin_receiver(:customer => 'customer_foo'))
+      response = receiver.delete
+      assert(receiver.deleted)
+    end
   end
 end
